@@ -3,62 +3,70 @@
  */
 "use strict"
 const shoppingCart = document.querySelector('.shopping-cart');
+const wishList = document.querySelector('.wish-list');
 
 let addToCart = document.querySelector('.add-to-cart');
 
-function add_to_cart(){
-    console.log("Product added to cart");
-    console.log(shoppingCart.textContent);
-    let val = shoppingCart.textContent;
-    // val = parseInt(val);
-    val = +val;
-    // val = val + 1;
-    // val +=1;
-    ++val;
-    shoppingCart.textContent = val;
+
+
+function countItems(elem) {
+    let count = +elem.textContent;
+    return ++count;
 }
 
-// addToCart.onclick = add_to_cart;
+function addProductToCart(product) {
+    console.log("product  =", product);
+    shoppingCart.textContent = countItems(shoppingCart);
+}
 
-// addToCart.addEventListener('click', add_to_cart);
+function addToCartButton() {
+    let addToCartButtons = document.querySelectorAll('.add-to-cart');
+    addToCartButtons.forEach((item) => {
+        // console.log("Element  => ", item);
+        item.addEventListener('click', (event)=>{
+            // console.log("event: ", event.target);
+            let parentItem =  event.target.parentNode.parentNode.parentNode.parentNode.parentNode;
 
-// addToCart.addEventListener('click', function(){
-//     let val = shoppingCart.textContent;
-//     val = +val;
-//     ++val;
-//     shoppingCart.textContent = val;
-// });
-
-// addToCart.addEventListener('click', () => {
-//     let val = shoppingCart.textContent;
-//     val = +val;
-//     ++val;
-//     shoppingCart.textContent = val;
-// });
-// shoppingCart.textContent = 10;
-// console.log(shoppingCart.textContent);
-
-
+            let productName =  parentItem.querySelector('h6 .product-name'); 
+            let productPrice =  parentItem.querySelector('p .product-price'); 
+            // console.log(productName, productPrice);
+            // console.log("currentItem: ", currentItem.parentNode.parentNode.parentNode.parentNode.parentNode);
+            let product = {
+                name: productName.textContent,
+                price: productPrice.textContent
+            };
+            addProductToCart(product);
+        })
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('.navbar-toggler').addEventListener('click', () => document.querySelector('.collapse').classList.toggle('show'));
 
+    
+    addToCartButton();
 
-    addToCart.addEventListener('click', () => {
-        let val = shoppingCart.textContent;
-        val = +val;
-        ++val;
-        shoppingCart.textContent = val;
-    });
+    // for(let i=0; i<addToCartButtons.length; i++){
+    //     console.log("Element ", i, " => ", addToCartButtons[i]);
+    // }
+    // let i=0;
+    // while (i<addToCartButtons.length) {
+    //     console.log("Element ", i, " => ", addToCartButtons[i]);
+    //     i++;
+    // }
 
-    document.querySelector('.add-to-wishlist').addEventListener('click', () => {
-        let val = document.querySelector('.wish-list').textContent;
-        val = +val;
-        ++val;
-        document.querySelector('.wish-list').textContent = val;
-        // document.querySelector('.wish-list').style.cssText += 'color: red; font-size:2rem;';
-        document.querySelector('.wish-list').style.color = 'red';
-    });
-    // add-to-wishlist
+    // addToCartButtons.forEach((item) => {
+    //     console.log("Element  => ", item);
+    // });
+
+    // addToCart.addEventListener('click', () => {
+    //     shoppingCart.textContent = countItems(shoppingCart);
+    // });
+
+    // document.querySelector('.add-to-wishlist').addEventListener('click', () => { 
+    //     document.querySelector('.wish-list').textContent = countItems(wishList);
+    //     document.querySelector('.wish-list').style.color = 'red';
+    // });
+   
 });
