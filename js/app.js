@@ -8,65 +8,96 @@ const wishList = document.querySelector('.wish-list');
 let addToCart = document.querySelector('.add-to-cart');
 
 
+class Store {
+    static init(key) {
+        if(!Store.isset(key)) {
+            Store.set(key, []);
+        }
+        return Store.get(key);
+    }
+
+    static set(key, value){
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    static get(key){
+        let value = localStorage.getItem(key);
+        return value === null ? null : JSON.parse(value);
+    }
+
+    static isset(key){
+        return Store.get(key) !== null;
+    }
+
+    static unset(key){
+        if(Store.isset(key)){
+            localStorage.removeItem(key);
+        }
+    }
+
+    static clear() {
+        localStorage.clear();
+    }
+}
+
+let cart = [];
 
 function countItems(elem) {
     let count = +elem.textContent;
     return ++count;
 }
 
-function addProductToCart(product) {
-    console.log("product  =", product);
-    shoppingCart.textContent = countItems(shoppingCart);
+function saveCart(cart) {
+    Store.set('basket', cart);
 }
+
+function addProductToCart(product, amount=1) {
+    // console.log("product  =", product);
+
+    shoppingCart.textContent = countItems(shoppingCart);
+    let cartItem = {...product, amount:amount};
+    // console.log("cartItem  =", cartItem);
+    cart = [...cart, cartItem];
+    // console.log("cart  =", cart);
+    saveCart(cart);
+}
+
+function addProductToWishList(product){
+    wishList.textContent = countItems(wishList);
+}
+
+function addToWishListButton() {
+    let addToWEishListButtons = document.querySelectorAll('.add-to-wishlist');
+    addToWEishListButtons.forEach((item) => {
+      
+        item.addEventListener('click', (event)=>{
+            let productId = event.target.closest('.btn-block').dataset.id;
+            let price = event.target.closest('.btn-block').dataset.price;
+            addProductToWishList({id: productId, price: price});
+        })
+    });
+}
+
+
 
 function addToCartButton() {
     let addToCartButtons = document.querySelectorAll('.add-to-cart');
-    addToCartButtons.forEach((item) => {
-        // console.log("Element  => ", item);
-        item.addEventListener('click', (event)=>{
-            // console.log("event: ", event.target);
-            let parentItem =  event.target.parentNode.parentNode.parentNode.parentNode.parentNode;
-
-            let productName =  parentItem.querySelector('h6 .product-name'); 
-            let productPrice =  parentItem.querySelector('p .product-price'); 
-            // console.log(productName, productPrice);
-            // console.log("currentItem: ", currentItem.parentNode.parentNode.parentNode.parentNode.parentNode);
-            let product = {
-                name: productName.textContent,
-                price: productPrice.textContent
-            };
-            addProductToCart(product);
+    addToCartButtons.forEach(item => 
+        item.addEventListener('click', event => {
+            let productId = event.target.closest('.btn-block').dataset.id;
+            let price = event.target.closest('.btn-block').dataset.price;
+            addProductToCart({id: productId, price: price});
         })
-    });
+    );
 }
 
 document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('.navbar-toggler').addEventListener('click', () => document.querySelector('.collapse').classList.toggle('show'));
-
     
+    cart = Store.init('basket');
+
     addToCartButton();
-
-    // for(let i=0; i<addToCartButtons.length; i++){
-    //     console.log("Element ", i, " => ", addToCartButtons[i]);
-    // }
-    // let i=0;
-    // while (i<addToCartButtons.length) {
-    //     console.log("Element ", i, " => ", addToCartButtons[i]);
-    //     i++;
-    // }
-
-    // addToCartButtons.forEach((item) => {
-    //     console.log("Element  => ", item);
-    // });
-
-    // addToCart.addEventListener('click', () => {
-    //     shoppingCart.textContent = countItems(shoppingCart);
-    // });
-
-    // document.querySelector('.add-to-wishlist').addEventListener('click', () => { 
-    //     document.querySelector('.wish-list').textContent = countItems(wishList);
-    //     document.querySelector('.wish-list').style.color = 'red';
-    // });
+    addToWishListButton();
    
 });
