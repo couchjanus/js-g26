@@ -26,5 +26,40 @@ let products = [
         image: 'images/product-4.jpg',
         price: 312,
         description: 'Timex Unisex Originals Timex Unisex Originals'
+    },
+    {
+        id: 5,
+        name: 'Red digital smartwatch',
+        image: 'images/product-5.jpg',
+        price: 111,
+        description: 'Red digital smartwatch Red digital smartwatch'
+    },
+    {
+        id: 6,
+        name: 'Nike air max 95',
+        image: 'images/product-6.jpg',
+        price: 212,
+        description: 'Nike air max 95 Nike air max 95'
+    },
+    {
+        id: 7,
+        name: 'Joemalone Women prefume',
+        image: 'images/product-7.jpg',
+        price: 21,
+        description: 'Joemalone Women prefume Joemalone Women prefume'
+    },
+    {
+        id: 8,
+        name: 'Apple Watch',
+        image: 'images/product-8.jpg',
+        price: 66,
+        description: 'Apple Watch Apple Watch'
+    },
+    {
+        id: 9,
+        name: 'Cool Watch',
+        image: 'images/product-9.jpg',
+        price: 112,
+        description: 'Cool Watch Apple Watch'
     }
 ];

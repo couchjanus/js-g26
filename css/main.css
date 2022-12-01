@@ -1364,7 +1364,7 @@ textarea.form-control-lg {
 
 /* Modal */
 .modal-window{
-    display: block;
+    /* display: block; */
 }
 .modal{
     position: fixed;
@@ -1375,6 +1375,7 @@ textarea.form-control-lg {
     z-index: 999;
     transition: all 0.4s;
     opacity: 0;
+    width: 100%;
     visibility: hidden;
     pointer-events: none;
 }
@@ -1386,7 +1387,9 @@ textarea.form-control-lg {
 }
 
 .modal-dialog {
-    width: auto;
+
+    width: 100%;
+    height: auto;
     margin: .5rem;
     position: absolute;
     top: 50%;
@@ -1448,6 +1451,20 @@ textarea.form-control-lg {
     color: indigo;
     text-decoration: none;
     opacity: .75;
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+}
+
+@media (min-width: 990px) {
+    .modal-dialog {
+        max-width: 900px;
+        margin: 1.75rem auto;
+    }
 }
 
 /*.modal {
