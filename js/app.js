@@ -7,6 +7,8 @@
 let addToCart = document.querySelector('.add-to-cart');
 const catalog = document.querySelector('.catalog');
 const modalWindow = document.querySelector('.modal-window');
+const shoppingCartItems = document.querySelector('.shopping-cart-items');
+
 class Store {
     static init(key) {
         if(!Store.isset(key)) {
@@ -51,13 +53,17 @@ function saveCart(cart) {
 }
 
 function addProductToCart(product, amount=1) {
-    // console.log("product  =", product);
-
-    shoppingCart.textContent = countItems(shoppingCart);
-    let cartItem = {...product, amount:amount};
-    // console.log("cartItem  =", cartItem);
-    cart = [...cart, cartItem];
-    // console.log("cart  =", cart);
+    let inCart = cart.some(element => element.id == product.id);
+    if (inCart) {
+        cart.forEach(item => {
+            if(item.id === product.id) {
+                item.amount += amount;
+            }
+        })
+    } else {
+        let cartItem = {...product, amount:amount};
+        cart = [...cart, cartItem];
+    }
     saveCart(cart);
 }
 
@@ -220,7 +226,7 @@ const setHeader = () => `
               </ul>
               <ul class="navbar-nav ms-auto">               
                 <li class="nav-item">
-                  <a href="cart.html" class="nav-link"><i class="fas fa-dolly-flatbed me-1 text-gray"></i>Cart<small class="text-gray fw-normal">(<span class="shopping-cart">2</span>)</small></a>
+                  <a href="cart.html" id="cart.html" class="nav-link"><i class="fas fa-dolly-flatbed me-1 text-gray"></i>Cart<small class="text-gray fw-normal">(<span class="shopping-cart">2</span>)</small></a>
                 </li>
                 <li class="nav-item"><a href="#!" class="nav-link"><i class="far fa-heart me-1"></i><small class="text-gray fw-normal">(<span class="wish-list">0</span>)</small></a>
                 </li>
@@ -326,6 +332,72 @@ let setActiveLink = () => {
     alink.classList.add('active');
 }
 
+const cartItemTemplate = (item, products) => {
+    // console.log(item);
+    let product = products.find(product => product.id == item.id);
+    return `
+    <tr class="cart-item">
+        <th class="ps-0 py-3 border-light" scope="row">
+            <div class="d-flex align-items-center">
+                <a class="reset-anchor d-block animsition-link" href="detail.html"><img src="${product.image}" alt="${product.name}" width="70"></a>
+                <div class="ms-3"><strong class="h6"><a class="reset-anchor animsition-link" href="detail.html">${product.name}</a></strong></div>
+            </div>
+        </th>
+        <td class="p-3 align-middle border-light">
+            <p class="mb-0 small">$${product.price}</p>
+        </td>
+        <td class="p-3 align-middle border-light">
+            <div class="border d-flex align-items-center justify-content-between px-3">
+                <span class="small text-uppercase text-gray headings-font-family">Quantity</span>
+                <div class="quantity">
+                    <button class="dec-btn p-0" data-id="${product.id}"><i class="fas fa-caret-left"></i></button>
+                    <input class="form-control form-control-sm border-0 shadow-0 p-0" type="text" value="${item.amount}">
+                    <button class="inc-btn p-0" data-id="${product.id}"><i class="fas fa-caret-right"></i></button>
+                </div>
+            </div>
+        </td>
+        <td class="p-3 align-middle border-light">
+            <p class="mb-0 small">$250</p>
+        </td>
+        <td class="p-3 align-middle border-light"><button class="reset-anchor"><i class="fas fa-trash-alt small text-muted" data-id="${product.id}"></i></button></td>
+    </tr>
+    `;
+}
+const populateShoppingCart = (cart, products) => {
+    let result = '';
+    cart.forEach(item => result+=cartItemTemplate(item, products));
+    return result;
+}
+
+const filterItem = (cart, id) => cart.filter(item => item.id != id);
+const findItem = (cart, id) => cart.find(item => item.id == id);
+function renderCart() {
+    shoppingCartItems.addEventListener('click', event => {
+        if(event.target.classList.contains('fa-trash-alt')){
+            cart = filterItem(cart, event.target.dataset.id);
+            saveCart(cart);
+            event.target.closest('.cart-item').remove();
+
+        }else if(event.target.classList.contains('inc-btn')){
+            let tmp = findItem(cart, event.target.dataset.id);
+            tmp.amount += 1;
+            event.target.previousElementSibling.value = tmp.amount;
+            saveCart(cart);
+            
+        }else if(event.target.classList.contains('dec-btn')){
+            let tmp = findItem(cart, event.target.dataset.id);
+            if(tmp !== undefined && tmp.amount > 1) {
+                tmp.amount -= 1;
+                event.target.nextElementSibling.value = tmp.amount;
+            }else{
+                cart = filterItem(cart, event.target.dataset.id);
+                event.target.closest('.cart-item').remove();
+            }
+            saveCart(cart);
+        }
+    })
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('icons')){
         document.getElementById('icons').innerHTML = setSvgIcons();
@@ -340,13 +412,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     cart = Store.init('basket');
 
-    
-    catalog.innerHTML = populateProductsList();
+    if(shoppingCartItems) {
+        // console.log('shoppingCartItems');
+        shoppingCartItems.innerHTML = populateShoppingCart(cart, products);
+        renderCart();
+    }
+    if(catalog) {
+        catalog.innerHTML = populateProductsList();
 
-    addToCartButton();
-    addToWishListButton();
+        addToCartButton();
+        addToWishListButton();
 
-    detailButton();
-   
+        detailButton();
+    }
     document.getElementById('footer').innerHTML = setFooter();
 });

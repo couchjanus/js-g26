@@ -23,7 +23,7 @@
     <!-- page-holder -->
     <div>
       <!-- navbar-->
-      <header class="bg-white">
+      <header class="bg-white" id="header">
         <!-- container -->
         <div class="container px-lg-3">
           <nav class="navbar navbar-expand navbar-light py-3 px-lg-0">
@@ -99,53 +99,8 @@
                       <th class="border-0 p-3" scope="col"> <strong class="text-sm text-uppercase"></strong></th>
                     </tr>
                   </thead>
-                  <tbody class="border-0">
-                    <tr>
-                      <th class="ps-0 py-3 border-light" scope="row">
-                        <div class="d-flex align-items-center"><a class="reset-anchor d-block animsition-link" href="detail.html"><img src="images/product-3.jpg" alt="..." width="70"></a>
-                          <div class="ms-3"><strong class="h6"><a class="reset-anchor animsition-link" href="detail.html">Red digital smartwatch</a></strong></div>
-                        </div>
-                      </th>
-                      <td class="p-3 align-middle border-light">
-                        <p class="mb-0 small">$250</p>
-                      </td>
-                      <td class="p-3 align-middle border-light">
-                        <div class="border d-flex align-items-center justify-content-between px-3"><span class="small text-uppercase text-gray headings-font-family">Quantity</span>
-                          <div class="quantity">
-                            <button class="dec-btn p-0"><i class="fas fa-caret-left"></i></button>
-                            <input class="form-control form-control-sm border-0 shadow-0 p-0" type="text" value="1">
-                            <button class="inc-btn p-0"><i class="fas fa-caret-right"></i></button>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="p-3 align-middle border-light">
-                        <p class="mb-0 small">$250</p>
-                      </td>
-                      <td class="p-3 align-middle border-light"><a class="reset-anchor" href="#!"><i class="fas fa-trash-alt small text-muted"></i></a></td>
-                    </tr>
-                    <tr>
-                      <th class="ps-0 py-3 border-0" scope="row">
-                        <div class="d-flex align-items-center"><a class="reset-anchor d-block animsition-link" href="detail.html"><img src="images/product-2.jpg" alt="..." width="70"></a>
-                          <div class="ms-3"><strong class="h6"><a class="reset-anchor animsition-link" href="detail.html">Apple watch</a></strong></div>
-                        </div>
-                      </th>
-                      <td class="p-3 align-middle border-0">
-                        <p class="mb-0 small">$250</p>
-                      </td>
-                      <td class="p-3 align-middle border-0">
-                        <div class="border d-flex align-items-center justify-content-between px-3"><span class="small text-uppercase text-gray headings-font-family">Quantity</span>
-                          <div class="quantity">
-                            <button class="dec-btn p-0"><i class="fas fa-caret-left"></i></button>
-                            <input class="form-control form-control-sm border-0 shadow-0 p-0" type="text" value="1">
-                            <button class="inc-btn p-0"><i class="fas fa-caret-right"></i></button>
-                          </div>
-                        </div>
-                      </td>
-                      <td class="p-3 align-middle border-0">
-                        <p class="mb-0 small">$250</p>
-                      </td>
-                      <td class="p-3 align-middle border-0"><a class="reset-anchor" href="#!"><i class="fas fa-trash-alt small text-muted"></i></a></td>
-                    </tr>
+                  <tbody class="border-0 shopping-cart-items">
+                    
                   </tbody>
                 </table>
               </div>
@@ -184,7 +139,7 @@
       </div>
 
       <!-- footer -->
-      <footer class="bg-dark text-white">
+      <footer class="bg-dark text-white" id="footer">
         <div class="container py-4">
           <div class="row py-5">
             <div class="col-md-4 mb-3 mb-md-0">
@@ -235,10 +190,9 @@
       <!-- FontAwesome CSS - loading as last, so it doesn't block rendering-->
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 
-      <script type="text/javascript">
-        document.querySelector('.navbar-toggler').addEventListener('click', function(){
-          document.querySelector('.collapse').classList.toggle('show');
-        });
+      <script src="js/data.js">    
+      </script>
+      <script src="js/app.js">      
       </script>
   </body>
 
