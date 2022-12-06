@@ -52,20 +52,6 @@ function saveCart(cart) {
     Store.set('basket', cart);
 }
 
-function addProductToCart(product, amount=1) {
-    let inCart = cart.some(element => element.id == product.id);
-    if (inCart) {
-        cart.forEach(item => {
-            if(item.id === product.id) {
-                item.amount += amount;
-            }
-        })
-    } else {
-        let cartItem = {...product, amount:amount};
-        cart = [...cart, cartItem];
-    }
-    saveCart(cart);
-}
 
 function addProductToWishList(product){
     wishList.textContent = countItems(wishList);
@@ -84,16 +70,7 @@ function addToWishListButton() {
 }
 
 
-function addToCartButton() {
-    let addToCartButtons = document.querySelectorAll('.add-to-cart');
-    addToCartButtons.forEach(item => 
-        item.addEventListener('click', event => {
-            let productId = event.target.closest('.btn-block').dataset.id;
-            let price = event.target.closest('.btn-block').dataset.price;
-            addProductToCart({id: productId, price: price});
-        })
-    );
-}
+
 
 
 const setSvgIcons = () => `
@@ -270,14 +247,14 @@ let modalTemplate = (product) => `
                             <span class="small text-uppercase text-gray mr-4">Quantity</span>
                             <div class="quantity">
                               <i class="fas fa-caret-left p-0 dec-btn"></i>
-                              <input class="form-control border-0 shadow-0 p-0" type="text" value="1">
+                              <input class="form-control border-0 shadow-0 p-0 quantity-result" type="text" value="1">
                               <i class="fas fa-caret-right p-0 inc-btn"></i>
                             </div>
                           </div>
                         </div>
                   
                         <div class="col-sm-5">
-                          <a class="btn btn-dark btn-sm w-100 h-100 d-flex align-items-center justify-content-center px-0" href="#!">Add to cart</a>
+                          <a class="btn btn-dark btn-sm w-100 h-100 d-flex align-items-center justify-content-center px-0 add-to-cart" href="#!" data-id="${product.id}" data-price="${product.price}">Add to cart</a>
                         </div>
                     
                       </div>
@@ -296,35 +273,6 @@ let modalTemplate = (product) => `
 `;
 
 
-function toggleModal(param, product={}) {
-
-    if(modalWindow.innerHTML == '') {
-        modalWindow.innerHTML = modalTemplate(product);
-    }else{
-        modalWindow.innerHTML = '';
-    }
-    modalWindow.style.display = param;
-}
-
-function detailButton() {
-    let detailButtons = catalog.querySelectorAll('.detail');
-    detailButtons.forEach(button => {
-        button.addEventListener('click', event => {
-            let productId = event.target.closest('.btn-block').dataset.id;
-            let product = products.find(item => item.id == productId);
-
-            toggleModal('block', product);
-
-            modalWindow.querySelector('.close').addEventListener('click', event => {
-                event.preventDefault();
-                toggleModal('none');
-            });
-        });
-    });
-}
-
-// active
-
 let setActiveLink = () => {
     let arr = location.href.split('/');
     let current = arr.pop();
@@ -336,7 +284,7 @@ const cartItemTemplate = (item, products) => {
     // console.log(item);
     let product = products.find(product => product.id == item.id);
     return `
-    <tr class="cart-item">
+    <tr class="cart-item" id="id${product.id}">
         <th class="ps-0 py-3 border-light" scope="row">
             <div class="d-flex align-items-center">
                 <a class="reset-anchor d-block animsition-link" href="detail.html"><img src="${product.image}" alt="${product.name}" width="70"></a>
@@ -357,7 +305,7 @@ const cartItemTemplate = (item, products) => {
             </div>
         </td>
         <td class="p-3 align-middle border-light">
-            <p class="mb-0 small">$250</p>
+            <p class="mb-0 small">$<span class="product-subtotal"></span></p>
         </td>
         <td class="p-3 align-middle border-light"><button class="reset-anchor"><i class="fas fa-trash-alt small text-muted" data-id="${product.id}"></i></button></td>
     </tr>
@@ -371,32 +319,25 @@ const populateShoppingCart = (cart, products) => {
 
 const filterItem = (cart, id) => cart.filter(item => item.id != id);
 const findItem = (cart, id) => cart.find(item => item.id == id);
-function renderCart() {
-    shoppingCartItems.addEventListener('click', event => {
-        if(event.target.classList.contains('fa-trash-alt')){
-            cart = filterItem(cart, event.target.dataset.id);
-            saveCart(cart);
-            event.target.closest('.cart-item').remove();
 
-        }else if(event.target.classList.contains('inc-btn')){
-            let tmp = findItem(cart, event.target.dataset.id);
-            tmp.amount += 1;
-            event.target.previousElementSibling.value = tmp.amount;
-            saveCart(cart);
-            
-        }else if(event.target.classList.contains('dec-btn')){
-            let tmp = findItem(cart, event.target.dataset.id);
-            if(tmp !== undefined && tmp.amount > 1) {
-                tmp.amount -= 1;
-                event.target.nextElementSibling.value = tmp.amount;
-            }else{
-                cart = filterItem(cart, event.target.dataset.id);
-                event.target.closest('.cart-item').remove();
-            }
-            saveCart(cart);
-        }
-    })
+
+function setCartTotal(cart) {
+    let tmpTotal = 0;
+    cart.map(item => {
+        tmpTotal = item.price * item.amount;
+        
+        shoppingCartItems.querySelector(`#id${item.id} .product-subtotal`).textContent = parseFloat(tmpTotal.toFixed(2));
+    });
+
+    let subTotal = parseFloat(cart.reduce((prev, cur) => prev + cur.price * cur.amount, 0).toFixed(2));
+
+    let cartTax = subTotal * 0.07;
+
+    document.querySelector('.cart-subtotal').textContent = subTotal;
+    document.querySelector('.cart-tax').textContent = cartTax;
+    document.querySelector('.cart-total').textContent = subTotal + cartTax;
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('icons')){
@@ -407,14 +348,136 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const shoppingCart = document.querySelector('.shopping-cart');
     const wishList = document.querySelector('.wish-list');
-    setActiveLink();
+
+    // setActiveLink();
     document.querySelector('.navbar-toggler').addEventListener('click', () => document.querySelector('.collapse').classList.toggle('show'));
+
+    function renderCart() {
+        shoppingCartItems.addEventListener('click', event => {
+            if(event.target.classList.contains('fa-trash-alt')){
+                cart = filterItem(cart, event.target.dataset.id);
+                setCartTotal(cart);
+                saveCart(cart);
+                cartItemsAmount(cart);
+                event.target.closest('.cart-item').remove();
+    
+            }else if(event.target.classList.contains('inc-btn')){
+                let tmp = findItem(cart, event.target.dataset.id);
+                tmp.amount += 1;
+                event.target.previousElementSibling.value = tmp.amount;
+                setCartTotal(cart);
+                saveCart(cart);
+                cartItemsAmount(cart);
+                
+            }else if(event.target.classList.contains('dec-btn')){
+                let tmp = findItem(cart, event.target.dataset.id);
+                if(tmp !== undefined && tmp.amount > 1) {
+                    tmp.amount -= 1;
+                    event.target.nextElementSibling.value = tmp.amount;
+                }else{
+                    cart = filterItem(cart, event.target.dataset.id);
+                    event.target.closest('.cart-item').remove();
+                }
+                setCartTotal(cart);
+                saveCart(cart);
+                cartItemsAmount(cart);
+            }
+        })
+    }
     
     cart = Store.init('basket');
+
+
+    function renderModal(cart) {
+        modalWindow.querySelector('.inc-btn').addEventListener('click', e => {
+            let v = e.target.previousElementSibling.value;
+            v++;
+            e.target.previousElementSibling.value = v;
+        });
+        modalWindow.querySelector('.dec-btn').addEventListener('click', e => {
+            let v = e.target.nextElementSibling.value;
+            if(v>1) {
+                v--;
+            }        
+            e.target.nextElementSibling.value = v;
+        });
+            
+        let quantityResult = modalWindow.querySelector('.quantity-result');
+        let addToCart = modalWindow.querySelector('.add-to-cart');
+    
+        addToCart.addEventListener('click', e => {
+            let id = e.target.dataset.id;
+            let price = e.target.dataset.price;
+            addProductToCart({id: id, price: price}, +quantityResult.value)
+        })
+    }
+    
+    function toggleModal(param, product={}) {
+    
+        if(modalWindow.innerHTML == '') {
+            modalWindow.innerHTML = modalTemplate(product);
+            renderModal(cart);
+        }else{
+            modalWindow.innerHTML = '';
+        }
+        modalWindow.style.display = param;
+    }
+    
+    function detailButton() {
+        let detailButtons = catalog.querySelectorAll('.detail');
+        detailButtons.forEach(button => {
+            button.addEventListener('click', event => {
+                let productId = event.target.closest('.btn-block').dataset.id;
+                let product = products.find(item => item.id == productId);
+    
+                toggleModal('block', product);
+    
+                modalWindow.querySelector('.close').addEventListener('click', event => {
+                    event.preventDefault();
+                    toggleModal('none');
+                });
+            });
+        });
+    }
+
+    function cartItemsAmount(cart) {
+        shoppingCart.textContent = cart.reduce((prev, cur) => prev + cur.amount, 0);
+    }
+
+    function addToCartButton() {
+        let addToCartButtons = document.querySelectorAll('.add-to-cart');
+        addToCartButtons.forEach(item => 
+            item.addEventListener('click', event => {
+                let productId = event.target.closest('.btn-block').dataset.id;
+                let price = event.target.closest('.btn-block').dataset.price;
+                addProductToCart({id: productId, price: price});
+            })
+        );
+    }
+
+    
+    function addProductToCart(product, amount=1) {
+        let inCart = cart.some(element => element.id == product.id);
+        if (inCart) {
+            cart.forEach(item => {
+                if(item.id === product.id) {
+                    item.amount += amount;
+                }
+            })
+        } else {
+            let cartItem = {...product, amount:amount};
+            cart = [...cart, cartItem];
+        }
+        saveCart(cart);
+        cartItemsAmount(cart);
+    }
+
+    cartItemsAmount(cart);
 
     if(shoppingCartItems) {
         // console.log('shoppingCartItems');
         shoppingCartItems.innerHTML = populateShoppingCart(cart, products);
+        setCartTotal(cart);
         renderCart();
     }
     if(catalog) {
