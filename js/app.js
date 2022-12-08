@@ -338,6 +338,79 @@ function setCartTotal(cart) {
     document.querySelector('.cart-total').textContent = subTotal + cartTax;
 }
 
+const carouselItemTemplate = data => `<div class="slide carousel-item">
+<a class="category-item" href="#!" data-category="${data.name}">
+    <img src="${data.image}" alt="${data.name}" height="100" with="250">
+    <strong class="category-item category-item-title" data-category="${data.name}">${data.name}</strong>
+</a>
+</div>`;
+
+
+function makeCarousel(items) {
+    let result = '';
+    items.forEach(item => {
+        result += carouselItemTemplate(item);
+    } );
+    result += result;
+    document.querySelector('.slide-track').innerHTML = result;
+
+}
+
+
+function distinctSections(items) {
+    let mapped = [...items.map(item => item.section)];
+    // console.log(mapped);
+    let unique = [...new Set(mapped)];
+    // console.log(unique);
+    return unique;
+}
+
+let liItemTemplate = obj => `<li class="mb-2"><a class="reset-anchor" href="#!">${obj.name}</a></li>`;
+
+
+let ulMenu = items => {
+    let ul = document.createElement('ul');
+    ul.setAttribute('class', "list-unstyled small text-muted ps-lg-4 font-weight-normal");
+    let res = '';
+    for (let item of items) {
+        res += liItemTemplate(item);
+    }
+    ul.innerHTML = res;
+    return ul;
+}
+
+// distinctSections(categories);
+
+let makeSectionName = section => {
+    let div = document.createElement('div');
+    div.setAttribute('class', "py-2 px-4 bg-dark text-white mb-3");
+    div.innerHTML = `<strong class="small text-uppercase fw-bold">${section}</strong>`;
+    return div;
+}
+
+let formChack = () => `<div class="form-check mb-1">
+<input class="form-check-input" type="checkbox" id="checkbox_1">
+<label class="form-check-label" for="checkbox_1">Returns Accepted</label>
+</div>`;
+
+
+let makeFormChackMenu = () => {
+    let span = document.createElement('span');
+    let h6 = document.createElement('h6');
+    h6.setAttribute('class', "text-uppercase mb-3");
+    h6.innerText = `Show only`;
+    span.append(h6);
+    let res = '';
+    for (let i=0; i < 6; i++) {
+        res += formChack();
+    }
+
+    let span1 = document.createElement('span');
+    span1.innerHTML = res;
+    span.append(span1);
+    return span;
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('icons')){
@@ -474,12 +547,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cartItemsAmount(cart);
 
+
+    if (document.querySelector('.carousel')) {
+        let categoriesForCrarousel = categories;
+        categoriesForCrarousel.length = 7;
+        makeCarousel(categoriesForCrarousel);
+    }
+
     if(shoppingCartItems) {
         // console.log('shoppingCartItems');
         shoppingCartItems.innerHTML = populateShoppingCart(cart, products);
         setCartTotal(cart);
         renderCart();
     }
+
+    const categoriesId = document.getElementById('categories');
+
+    if (categoriesId) {
+        let distinct = distinctSections(categories);
+        let results = [];
+        let i = 0;
+        for (let section of distinct) {
+            results[i] = categories.filter(obj => {
+                return obj.section === section;
+            });
+            i++;
+        }
+
+        for (let i = 0; i < distinct.length; i++) {
+            categoriesId.append(makeSectionName(distinct[i]));
+            categoriesId.append(ulMenu(results[i]));
+        }
+        categoriesId.append(makeFormChackMenu());
+ 
+    }
+
     if(catalog) {
         catalog.innerHTML = populateProductsList();
 
