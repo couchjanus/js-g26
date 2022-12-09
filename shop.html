@@ -53,9 +53,11 @@
             <div class="row">
               
               <!-- SHOP SIDEBAR-->
-              <div class="col-lg-3 order-2 order-lg-1" id="categories">
+              <div class="col-lg-3 order-2 order-lg-1">
                 <h5 class="text-uppercase mb-4">Categories</h5>
- 
+                <span id="categories"></span>
+                <h6 class="py-2 px-4 bg-dark text-white mb-3">Show Only</h6>
+                <span class="show-only"></span>
               </div>
               
               <!-- SHOP LISTING-->
@@ -68,8 +70,13 @@
                   </div>
                   
                   <div class="col-lg-6">
-                    
+       
+                    <select class="selectpicker form-select form-select-lg mb-2 text-sm text-muted" name="sorting" data-width="200" data-title="Default sorting">
+                                            
+                    </select>
+                                        
                   </div>
+                    
                 </div>
                 
                 <div class="row catalog">

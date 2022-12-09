@@ -107,7 +107,7 @@ let productItemTemplate = (product) => `
 <div class="col-xl-3 col-lg-4 col-sm-6">
 <div class="product text-center">
   <div class="position-relative d-block mb-3">
-    <div class="badge text-white bg-"></div><a class="d-block" href="detail.html"><img class="img-fluid w-100" src="${product.image}" alt="${product.name}"></a>
+    <div class="badge text-white bg-${product.badge.bg}">${product.badge.title}</div><a class="d-block" href="detail.html"><img class="img-fluid w-100" src="${product.image}" alt="${product.name}"></a>
     <div class="product-overlay">
       <ul class="mb-0 list-inline btn-block" data-id="${product.id}" data-price="${product.price}">
         <li class="list-inline-item m-0 p-0"><a class="btn btn-sm btn-outline-dark add-to-wishlist" href="#!"><i class="far fa-heart"></i></a></li>
@@ -167,7 +167,7 @@ const setFooter = () => `
         </div>
 `;
 
-function populateProductsList() {
+function populateProductsList(products) {
     let content = "";
     for (const item of products) {
         content += productItemTemplate(item);
@@ -339,9 +339,9 @@ function setCartTotal(cart) {
 }
 
 const carouselItemTemplate = data => `<div class="slide carousel-item">
-<a class="category-item" href="#!" data-category="${data.name}">
+<a class="category-item" href="#!" data-id="${data.id}">
     <img src="${data.image}" alt="${data.name}" height="100" with="250">
-    <strong class="category-item category-item-title" data-category="${data.name}">${data.name}</strong>
+    <strong class="category-item category-item-title" data-id="${data.id}">${data.name}</strong>
 </a>
 </div>`;
 
@@ -365,7 +365,7 @@ function distinctSections(items) {
     return unique;
 }
 
-let liItemTemplate = obj => `<li class="mb-2"><a class="reset-anchor" href="#!">${obj.name}</a></li>`;
+let liItemTemplate = obj => `<li class="mb-2"><a class="category-item reset-anchor" href="#!" data-id="${obj.id}">${obj.name}</a></li>`;
 
 
 let ulMenu = items => {
@@ -552,6 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let categoriesForCrarousel = categories;
         categoriesForCrarousel.length = 7;
         makeCarousel(categoriesForCrarousel);
+        renderCategory('.slide-track', products);
     }
 
     if(shoppingCartItems) {
@@ -562,6 +563,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const categoriesId = document.getElementById('categories');
+
+    function renderCategory(selector, products) {
+        const categoryItems = document.querySelectorAll(selector);
+
+        categoryItems.forEach(item => item.addEventListener('click', e => {
+            e.preventDefault();
+            if(e.target.classList.contains('category-item')) {
+                const category_id = e.target.dataset.id;
+                const categoryFilter = items => items.filter(item => item.category_id == category_id);
+
+                catalog.innerHTML = populateProductsList(categoryFilter(products));
+            }else{
+                catalog.innerHTML = populateProductsList(products);
+            }
+        }))
+    }
+
+    const showOnly = document.querySelector('.show-only');
+
+    if (showOnly) {
+        let badges = [...new Set([...products.map(item => item.badge.title)].filter(item => item != ''))];
+
+        showOnly.innerHTML = badges.map(item => `<div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" id="id-${item}" value="${item}" name="badge">
+        <label class="form-check-label" for="id-${item}">${item}</label>
+        </div>`).join("");
+
+        let checkboxes = document.querySelectorAll('input[name="badge"]');
+
+        let values = [];
+        checkboxes.forEach(item => {
+            item.addEventListener('change', e => {
+                if (e.target.checked) {
+                    values.push(item.value);
+                    catalog.innerHTML = values.map(value => populateProductsList(products.filter(product => product.badge.title.includes(value)))).join('');
+                }else{
+                    if (values.length != 0) {
+                        values.pop(item.value);
+                        catalog.innerHTML = values.map(value => populateProductsList(products.filter(product => product.badge.title.includes(value)))).join('');
+                    }
+                }
+                if (values.length == 0) {
+                    catalog.innerHTML = populateProductsList(products);
+                }
+            });
+        });
+    }
 
     if (categoriesId) {
         let distinct = distinctSections(categories);
@@ -578,17 +626,64 @@ document.addEventListener('DOMContentLoaded', () => {
             categoriesId.append(makeSectionName(distinct[i]));
             categoriesId.append(ulMenu(results[i]));
         }
-        categoriesId.append(makeFormChackMenu());
+
+        renderCategory('#categories', products);
+        // categoriesId.append(makeFormChackMenu());
  
     }
 
     if(catalog) {
-        catalog.innerHTML = populateProductsList();
+        catalog.innerHTML = populateProductsList(products);
 
         addToCartButton();
         addToWishListButton();
 
         detailButton();
     }
+
+    let compare = (key, order='asc') => (a, b) => {
+        if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) return 0;
+
+        const A = (typeof a[key] === 'string') ? a[key].toUpperCase() : a[key];
+        const B = (typeof b[key] === 'string') ? b[key].toUpperCase() : b[key];
+
+        let copmarison = 0;
+        copmarison = (A > B)? 1: -1;
+        return (order === 'desc') ? -copmarison : copmarison;
+    }
+
+
+    const selectPicker = document.querySelector('.selectpicker');
+
+    if (selectPicker) {
+        const sortingOrders = [
+            {key: 'default', value: 'Default sorting'},
+            {key: 'popularity', value: 'Popularity sorting'},
+            {key: 'low-high', value: 'Low To High sorting'},
+            {key: 'high-low', value: 'High To Low sorting'},
+        ];
+
+        const sortingOptions = sortingOrders.map(item => `<option value="${item.key}">${item.value}</option>`).join('');
+        selectPicker.innerHTML = sortingOptions;
+
+        selectPicker.addEventListener('change', function() {
+            switch(this.value){
+                case 'low-high': 
+                catalog.innerHTML = populateProductsList(products.sort(compare('price', 'asc')));
+                break;
+                case 'high-low': 
+                catalog.innerHTML = populateProductsList(products.sort(compare('price', 'desc')));
+                break;
+                case 'popularity': // TODO
+                catalog.innerHTML = populateProductsList(products.sort(compare('price', 'asc')));
+                break;
+                default: 
+                catalog.innerHTML = populateProductsList(products.sort(compare('id', 'asc')));
+               
+            }
+        })
+
+    }
+
     document.getElementById('footer').innerHTML = setFooter();
 });
