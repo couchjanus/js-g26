@@ -8,6 +8,9 @@ let addToCart = document.querySelector('.add-to-cart');
 const catalog = document.querySelector('.catalog');
 const modalWindow = document.querySelector('.modal-window');
 const shoppingCartItems = document.querySelector('.shopping-cart-items');
+const url = 'https://my-json-server.typicode.com/couchjanus/db';
+let products = [];
+let categories = [];
 
 class Store {
     static init(key) {
@@ -411,6 +414,22 @@ let makeFormChackMenu = () => {
     return span;
 }
 
+async function fetchData(url) {
+    return await fetch(url, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'}
+    }).then(response => {
+        if (response.status >= 400) {
+            return response.json().then(err => {
+                const error = new Error('Something went wrong!')
+                error.data = err
+                throw error
+            })
+        }
+        return response.json();
+    });
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('icons')){
@@ -548,18 +567,14 @@ document.addEventListener('DOMContentLoaded', () => {
     cartItemsAmount(cart);
 
 
-    if (document.querySelector('.carousel')) {
-        let categoriesForCrarousel = categories;
-        categoriesForCrarousel.length = 7;
-        makeCarousel(categoriesForCrarousel);
-        renderCategory('.slide-track', products);
-    }
-
     if(shoppingCartItems) {
-        // console.log('shoppingCartItems');
-        shoppingCartItems.innerHTML = populateShoppingCart(cart, products);
-        setCartTotal(cart);
-        renderCart();
+        fetchData(`${url}/products`)
+        .then(response => {
+            products = response;
+            shoppingCartItems.innerHTML = populateShoppingCart(cart, products);
+            setCartTotal(cart);
+            renderCart();
+        });
     }
 
     const categoriesId = document.getElementById('categories');
@@ -571,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if(e.target.classList.contains('category-item')) {
                 const category_id = e.target.dataset.id;
-                const categoryFilter = items => items.filter(item => item.category_id == category_id);
+                const categoryFilter = items => items.filter(item => item.category == category_id);
 
                 catalog.innerHTML = populateProductsList(categoryFilter(products));
             }else{
@@ -582,63 +597,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showOnly = document.querySelector('.show-only');
 
-    if (showOnly) {
-        let badges = [...new Set([...products.map(item => item.badge.title)].filter(item => item != ''))];
+    
 
-        showOnly.innerHTML = badges.map(item => `<div class="form-check mb-1">
-        <input class="form-check-input" type="checkbox" id="id-${item}" value="${item}" name="badge">
-        <label class="form-check-label" for="id-${item}">${item}</label>
-        </div>`).join("");
-
-        let checkboxes = document.querySelectorAll('input[name="badge"]');
-
-        let values = [];
-        checkboxes.forEach(item => {
-            item.addEventListener('change', e => {
-                if (e.target.checked) {
-                    values.push(item.value);
-                    catalog.innerHTML = values.map(value => populateProductsList(products.filter(product => product.badge.title.includes(value)))).join('');
-                }else{
-                    if (values.length != 0) {
-                        values.pop(item.value);
-                        catalog.innerHTML = values.map(value => populateProductsList(products.filter(product => product.badge.title.includes(value)))).join('');
-                    }
-                }
-                if (values.length == 0) {
-                    catalog.innerHTML = populateProductsList(products);
-                }
-            });
-        });
-    }
-
-    if (categoriesId) {
-        let distinct = distinctSections(categories);
-        let results = [];
-        let i = 0;
-        for (let section of distinct) {
-            results[i] = categories.filter(obj => {
-                return obj.section === section;
-            });
-            i++;
-        }
-
-        for (let i = 0; i < distinct.length; i++) {
-            categoriesId.append(makeSectionName(distinct[i]));
-            categoriesId.append(ulMenu(results[i]));
-        }
-
-        renderCategory('#categories', products);
-        // categoriesId.append(makeFormChackMenu());
- 
-    }
+    
 
     if(catalog) {
-        catalog.innerHTML = populateProductsList(products);
+        fetchData(`${url}/products`)
+        .then(response => {
+            products = response;
+            catalog.innerHTML = populateProductsList(products);
 
-        addToCartButton();
-        addToWishListButton();
+            addToCartButton();
+            addToWishListButton();
+            detailButton();
 
-        detailButton();
+            if (document.querySelector('.carousel')) {
+                fetchData(`${url}/categories`)
+                .then(response => {
+                    categories = response;
+                    let categoriesForCrarousel = categories;
+                    categoriesForCrarousel.length = 7;
+                    makeCarousel(categoriesForCrarousel);
+                    renderCategory('.slide-track', products);
+                });
+            }
+
+            if (showOnly) {
+                let badges = [...new Set([...products.map(item => item.badge.title)].filter(item => item != ''))];
+        
+                showOnly.innerHTML = badges.map(item => `<div class="form-check mb-1">
+                <input class="form-check-input" type="checkbox" id="id-${item}" value="${item}" name="badge">
+                <label class="form-check-label" for="id-${item}">${item}</label>
+                </div>`).join("");
+        
+                let checkboxes = document.querySelectorAll('input[name="badge"]');
+        
+                let values = [];
+                checkboxes.forEach(item => {
+                    item.addEventListener('change', e => {
+                        if (e.target.checked) {
+                            values.push(item.value);
+                            catalog.innerHTML = values.map(value => populateProductsList(products.filter(product => product.badge.title.includes(value)))).join('');
+                        }else{
+                            if (values.length != 0) {
+                                values.pop(item.value);
+                                catalog.innerHTML = values.map(value => populateProductsList(products.filter(product => product.badge.title.includes(value)))).join('');
+                            }
+                        }
+                        if (values.length == 0) {
+                            catalog.innerHTML = populateProductsList(products);
+                        }
+                    });
+                });
+            }
+
+            if (categoriesId) {
+                fetchData(`${url}/categories`)
+                .then(response => {
+                    categories = response;
+                    let distinct = distinctSections(categories);
+                    let results = [];
+                    let i = 0;
+                    for (let section of distinct) {
+                        results[i] = categories.filter(obj => {
+                            return obj.section === section;
+                        });
+                        i++;
+                    }
+            
+                    for (let i = 0; i < distinct.length; i++) {
+                        categoriesId.append(makeSectionName(distinct[i]));
+                        categoriesId.append(ulMenu(results[i]));
+                    }
+            
+                    renderCategory('#categories', products);
+                   
+                });
+            }
+
+        }); 
+        
     }
 
     let compare = (key, order='asc') => (a, b) => {
